@@ -37,14 +37,28 @@ W zakresie MVP nie będą wdrażane następujące funkcjonalności:
  - Formularz rejestracyjny zawiera pola do wpisania adresu e-mail oraz hasła
  - Po poprawnym uzupełnieniu danych i weryfikacji danych konto jest aktywowane
  - Użytkownik zostaje zalogowany i otrzymuje dostęp do swojego konta
+ - System nie oferuje możliwości rejestracji przez zewnętrzne serwisy (np. Google, GitHub)
 
-### US-002: Logowanie użytkownika
-- Tytuł: Bezpieczne logowanie rekrutera
-- Opis: Jako rekruter chcę mieć możliwość bezpiecznego logowania się do systemu, aby mieć dostęp do swoich ofert i przesłanych CV.
+### US-002: Logowanie i wylogowanie użytkownika
+- Tytuł: Bezpieczne logowanie i wylogowanie rekrutera
+- Opis: Jako rekruter chcę mieć możliwość bezpiecznego logowania się do systemu i wylogowania, aby mieć kontrolę nad dostępem do swoich ofert i przesłanych CV.
 - Kryteria akceptacji:
-  - Użytkownik musi wprowadzić poprawny identyfikator i hasło.
-  - System powinien zabezpieczać dane poprzez hashowanie haseł.
-  - W przypadku błędnych danych wyświetlane jest odpowiednie powiadomienie o błędzie.
+  - Użytkownik musi wprowadzić poprawny identyfikator i hasło
+  - System powinien zabezpieczać dane poprzez hashowanie haseł
+  - W przypadku błędnych danych wyświetlane jest odpowiednie powiadomienie o błędzie
+  - W prawym górnym rogu interfejsu znajduje się przycisk wylogowania
+  - Po wylogowaniu użytkownik jest przekierowywany do strony logowania
+  - System nie oferuje logowania przez zewnętrzne serwisy
+
+### US-002a: Odzyskiwanie hasła
+- Tytuł: Odzyskiwanie dostępu do konta
+- Opis: Jako użytkownik chcę mieć możliwość odzyskania dostępu do swojego konta w przypadku zapomnienia hasła
+- Kryteria akceptacji:
+  - Na stronie logowania dostępna jest opcja "Zapomniałem hasła"
+  - System wymaga podania adresu email użytego przy rejestracji
+  - Na podany adres email wysyłany jest link do resetowania hasła
+  - Po kliknięciu w link użytkownik może ustawić nowe hasło
+  - System wymaga potwierdzenia nowego hasła przez jego dwukrotne wpisanie
 
 ### US-003: Przeglądanie CV
 - Tytuł: Widok listy CV
@@ -89,8 +103,53 @@ W zakresie MVP nie będą wdrażane następujące funkcjonalności:
 - Opis: Tylko zalogowany użytkownik może mieć dostęp do swoich ofert i wysłanych CV
 - Nie ma dostępu do ofert i nadesłanych CV innych użytkowników
 
+### US-009: Tworzenie oferty pracy
+- Tytuł: Dodawanie nowej oferty pracy
+- Opis: Jako rekruter chcę mieć możliwość utworzenia nowej oferty pracy, aby rozpocząć proces rekrutacji
+- Kryteria akceptacji:
+  - Dostępny jest formularz tworzenia nowej oferty pracy
+  - Formularz zawiera pola: tytuł stanowiska, opis, wymagania, słowa kluczowe
+  - Wszystkie pola są walidowane przed zapisem
+  - Po zapisie oferta jest widoczna na liście ofert rekrutera
+  - System wyświetla potwierdzenie utworzenia oferty
+
+### US-010: Edycja oferty pracy
+- Tytuł: Modyfikacja istniejącej oferty pracy
+- Opis: Jako rekruter chcę mieć możliwość edycji utworzonej oferty pracy, aby aktualizować jej treść
+- Kryteria akceptacji:
+  - Dla każdej oferty dostępna jest opcja edycji
+  - W formularzu edycji wyświetlane są aktualne dane oferty
+  - Wszystkie pola można modyfikować
+  - System wyświetla potwierdzenie zapisania zmian
+  - Historia modyfikacji jest zapisywana w systemie
+
+### US-011: Usuwanie oferty pracy
+- Tytuł: Usuwanie oferty pracy z systemu
+- Opis: Jako rekruter chcę mieć możliwość usunięcia oferty pracy, która nie jest już aktualna
+- Kryteria akceptacji:
+  - Dla każdej oferty dostępna jest opcja usunięcia
+  - System wymaga potwierdzenia przed usunięciem
+  - Po usunięciu oferta nie jest już widoczna na liście
+  - System wyświetla potwierdzenie usunięcia
+  - Usunięcie oferty nie usuwa historii związanej z przeprowadzoną rekrutacją
+
 ## 6. Metryki sukcesu
 
 - Co najmniej 75% pozytywnych ocen rekruterów, mierzone poprzez ankiety po użyciu systemu.
 - Skuteczność selekcji: 75% CV zakwalifikowanych przez system odpowiada wynikowi ręcznej weryfikacji na próbce testowej.
 - Stabilność systemu: Wszystkie automatyczne testy przepływu przechodzą pomyślnie przy każdym wdrożeniu.
+
+## Interfejs Rekrutera
+Po zalogowaniu, rekruter widzi dashboard zawierający:
+- Przegląd 3 ofert pracy z wyświetloną liczbą nadesłanych CV, gdzie:
+  - Ilość CV zaakceptowanych jest oznaczona napisana zielonym kolorem,
+  - Ilość CV odrzuconych jest naznaczona czerwonym kolorem.
+- Każda oferta zawiera tytuł oraz powiązane słowa kluczowe (modyfikowalne przez rekrutera).
+- Po kliknięciu na ofertę pojawia się podsumowanie zawierające:
+  - Całkowitą liczbę CV,
+  - Liczbę CV odrzuconych,
+  - Liczbę CV zaakceptowanych,
+  - Listę słów kluczowych wraz z ich ilością.
+- Następnie, interfejs podzielony jest na dwie sekcje:
+  - Zakwalifikowane CV: zawiera imiona i nazwiska kandydatów, liczbę dopasowanych słów kluczowych oraz procent dopasowania do oferty. Sekcja ma zielone tło.
+  - Odrzucone CV: zawiera liczbę dopasowanych słów kluczowych, procent dopasowania oraz listę słów kluczowych, które pojawiły się w CV, jeśli takie wystąpiły. Tło czerwone.
