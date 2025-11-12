@@ -38,7 +38,7 @@ export async function signIn(prevState: ActionState, formData: FormData): Promis
   }
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/dashboard')
 }
 
 export async function signUp(prevState: ActionState, formData: FormData): Promise<ActionState> {

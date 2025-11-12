@@ -1,10 +1,19 @@
 import { defineConfig, devices } from '@playwright/test'
+import dotenv from 'dotenv'
+import path from 'path'
+
+// Load environment variables from .env.test for E2E testing
+dotenv.config({ path: path.resolve(process.cwd(), '.env.test') })
 
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
   testDir: './tests/e2e',
+  
+  /* Global setup and teardown */
+  globalSetup: require.resolve('./tests/e2e/global-setup'),
+  globalTeardown: require.resolve('./tests/e2e/global-teardown'),
   
   /* Run tests in files in parallel */
   fullyParallel: true,
@@ -31,6 +40,9 @@ export default defineConfig({
     
     /* Screenshot on failure */
     screenshot: 'only-on-failure',
+    
+    /* Video on failure for debugging */
+    video: 'retain-on-failure',
   },
 
   /* Configure projects for major browsers */
@@ -39,31 +51,11 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports - optional for MVP */
-    // {
-    //   name: 'Mobile Chrome',
-    //   use: { ...devices['Pixel 5'] },
-    // },
-    // {
-    //   name: 'Mobile Safari',
-    //   use: { ...devices['iPhone 12'] },
-    // },
   ],
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run dev:test',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

@@ -45,7 +45,10 @@ export default async function DashboardPage() {
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 
+            className="text-3xl font-bold text-gray-900"
+            data-testid="dashboard-title"
+          >
             Dashboard rekrutera
           </h1>
           <p className="mt-2 text-gray-600">
@@ -54,24 +57,35 @@ export default async function DashboardPage() {
         </div>
 
         {/* Job Offers Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div 
+          className="grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          data-testid="offers-grid"
+        >
           {mockJobOffers.map((offer) => (
             <Link
               key={offer.id}
               href={`/offers/${offer.id}`}
               className="block"
+              data-testid="offer-card"
             >
               <div className="rounded-lg border bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 
+                  className="text-lg font-semibold text-gray-900"
+                  data-testid="offer-title"
+                >
                   {offer.title}
                 </h3>
 
                 {/* Keywords */}
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div 
+                  className="mt-3 flex flex-wrap gap-2"
+                  data-testid="offer-keywords"
+                >
                   {offer.keywords.map((keyword) => (
                     <span
                       key={keyword}
                       className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+                      data-testid="keyword-badge"
                     >
                       {keyword}
                     </span>
@@ -80,17 +94,26 @@ export default async function DashboardPage() {
 
                 {/* Statistics */}
                 <div className="mt-4 space-y-2">
-                  <div className="flex items-center justify-between text-sm">
+                  <div 
+                    className="flex items-center justify-between text-sm"
+                    data-testid="stat-total"
+                  >
                     <span className="text-gray-600">Łącznie CV:</span>
                     <span className="font-semibold">{offer.totalCVs}</span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div 
+                    className="flex items-center justify-between text-sm"
+                    data-testid="stat-accepted"
+                  >
                     <span className="text-gray-600">Zaakceptowane:</span>
                     <span className="font-semibold text-green-600">
                       {offer.acceptedCVs}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-sm">
+                  <div 
+                    className="flex items-center justify-between text-sm"
+                    data-testid="stat-rejected"
+                  >
                     <span className="text-gray-600">Odrzucone:</span>
                     <span className="font-semibold text-red-600">
                       {offer.rejectedCVs}
@@ -104,7 +127,10 @@ export default async function DashboardPage() {
 
         {/* Empty State (if no offers) */}
         {mockJobOffers.length === 0 && (
-          <div className="rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center">
+          <div 
+            className="rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center"
+            data-testid="empty-state"
+          >
             <h3 className="text-lg font-medium text-gray-900">
               Brak ofert pracy
             </h3>

@@ -22,7 +22,10 @@
 # misc
 .DS_Store
 *.pem
+
+# Environment files - NIE COMMITUJ ich do repozytorium!
 .env.local
+.env.test
 .env.development.local
 .env.test.local
 .env.production.local

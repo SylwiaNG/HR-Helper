@@ -23,12 +23,36 @@ const OfferDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
         // Simulate API calls
         await new Promise(resolve => setTimeout(resolve, 1000));
 
+        // Mock offers matching dashboard data
+        const mockOffers = [
+          {
+            id: 1,
+            title: 'Senior Frontend Developer',
+            description: 'Join our team to work on exciting frontend projects.',
+            keywords: ['React', 'TypeScript', 'Next.js'],
+          },
+          {
+            id: 2,
+            title: 'Backend Developer',
+            description: 'Build scalable backend systems.',
+            keywords: ['Node.js', 'PostgreSQL', 'API'],
+          },
+          {
+            id: 3,
+            title: 'Full Stack Developer',
+            description: 'Work on both frontend and backend.',
+            keywords: ['JavaScript', 'React', 'Node.js', 'MongoDB'],
+          },
+        ];
+
+        const mockOfferData = mockOffers.find(o => o.id === parseInt(id)) || mockOffers[0];
+
         const mockOffer: JobOfferDTO = {
           id: parseInt(id),
           user_id: 'auth0|12345', // Mock user_id
-          title: 'Senior Frontend Developer',
-          description: 'Join our team to work on exciting new projects.',
-          keywords: ['React', 'TypeScript', 'Next.js', 'TailwindCSS'],
+          title: mockOfferData.title,
+          description: mockOfferData.description,
+          keywords: mockOfferData.keywords,
           created_at: new Date().toISOString(),
         };
 
@@ -159,14 +183,14 @@ const OfferDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
   const rejectedCvs = cvs.filter(cv => cv.status === 'rejected');
 
   return (
-    <div className="container mx-auto p-4 space-y-8">
-      <h1 className="text-3xl font-bold">{offer.title}</h1>
+    <div className="container mx-auto p-4 space-y-8" data-testid="offer-details-page">
+      <h1 className="text-3xl font-bold" data-testid="offer-details-title">{offer.title}</h1>
       
       {stats && <StatisticsPanel stats={stats} />}
 
       {offer && <KeywordsPanel offer={offer} onUpdate={handleKeywordsUpdate} />}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="cv-lists-container">
         <CVList title="Zakwalifikowane" cvs={qualifiedCvs} onStatusChange={handleStatusChange} />
         <CVList title="Odrzucone" cvs={rejectedCvs} onStatusChange={handleStatusChange} />
       </div>

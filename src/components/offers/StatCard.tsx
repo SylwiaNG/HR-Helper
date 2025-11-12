@@ -4,16 +4,17 @@ import { CustomCard, CustomCardContent, CustomCardHeader, CustomCardTitle } from
 interface StatCardProps {
   title: string;
   value: number | string;
+  testId?: string;
 }
 
-const StatCard: React.FC<StatCardProps> = ({ title, value }) => {
+const StatCard: React.FC<StatCardProps> = ({ title, value, testId }) => {
   return (
-    <CustomCard>
+    <CustomCard data-testid={testId}>
       <CustomCardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CustomCardTitle className="text-sm font-medium">{title}</CustomCardTitle>
       </CustomCardHeader>
       <CustomCardContent>
-        <div className="text-2xl font-bold">{value}</div>
+        <div className="text-2xl font-bold" data-testid={`${testId}-value`}>{value}</div>
       </CustomCardContent>
     </CustomCard>
   );

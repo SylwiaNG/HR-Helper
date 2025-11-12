@@ -43,6 +43,7 @@ export function LoginForm() {
               required
               disabled={isPending}
               onChange={() => toast.dismiss()}
+              data-testid="email-input"
             />
           </div>
           <div className="space-y-2">
@@ -54,9 +55,15 @@ export function LoginForm() {
               required
               disabled={isPending}
               onChange={() => toast.dismiss()}
+              data-testid="password-input"
             />
           </div>
-          <Button type="submit" className="w-full" disabled={isPending}>
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isPending}
+            data-testid="submit-button"
+          >
             {isPending ? "Logowanie..." : "Zaloguj się"}
           </Button>
         </form>
