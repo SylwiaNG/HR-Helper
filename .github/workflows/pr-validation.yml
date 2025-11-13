@@ -1,0 +1,208 @@
+name: PR Validation
+
+# Workflow reaguje na Pull Requesty do brancha master
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+# Definiujemy zmienne środowiskowe dla całego workflow
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # Job 1: Kontrola jakości kodu
+  code-quality:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+        continue-on-error: false
+      
+      - name: Check TypeScript compilation
+        run: npx tsc --noEmit
+  
+  # Job 2: Testy jednostkowe
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run unit tests
+        run: npm run test:ci
+      
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 7
+      
+      - name: Comment test coverage on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverageFile = 'coverage/coverage-summary.json';
+            
+            if (fs.existsSync(coverageFile)) {
+              const coverage = JSON.parse(fs.readFileSync(coverageFile, 'utf8'));
+              const total = coverage.total;
+              
+              const comment = `## 📊 Test Coverage Report
+              
+              | Metric | Percentage |
+              |--------|------------|
+              | Lines | ${total.lines.pct}% |
+              | Statements | ${total.statements.pct}% |
+              | Functions | ${total.functions.pct}% |
+              | Branches | ${total.branches.pct}% |
+              
+              Coverage details available in [artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+  
+  # Job 3: Testy E2E (opcjonalne - uruchamiamy tylko gdy zmienione są pliki src/ lub tests/e2e/)
+  e2e-tests:
+    name: E2E Tests (Optional)
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    if: |
+      contains(github.event.pull_request.changed_files, 'src/') ||
+      contains(github.event.pull_request.changed_files, 'tests/e2e/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: Create test environment file
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.TEST_SUPABASE_URL }}" > .env.test
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.TEST_SUPABASE_ANON_KEY }}" >> .env.test
+          echo "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.TEST_SUPABASE_SERVICE_KEY }}" >> .env.test
+      
+      - name: Build application
+        run: npm run build
+      
+      - name: Run E2E tests
+        run: npm run test:e2e
+        continue-on-error: true
+      
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 7
+  
+  # Job 4: Podsumowanie - wszystkie sprawdzenia przeszły
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [code-quality, unit-tests]
+    if: always()
+    
+    steps:
+      - name: Check validation results
+        run: |
+          echo "Code Quality: ${{ needs.code-quality.result }}"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          
+          if [ "${{ needs.code-quality.result }}" != "success" ] || [ "${{ needs.unit-tests.result }}" != "success" ]; then
+            echo "❌ PR validation failed!"
+            exit 1
+          else
+            echo "✅ All validations passed!"
+          fi
+      
+      - name: Post summary comment
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const codeQuality = '${{ needs.code-quality.result }}';
+            const unitTests = '${{ needs.unit-tests.result }}';
+            const e2eTests = '${{ needs.e2e-tests.result }}';
+            
+            const statusEmoji = (status) => {
+              if (status === 'success') return '✅';
+              if (status === 'failure') return '❌';
+              if (status === 'skipped') return '⏭️';
+              return '⏳';
+            };
+            
+            const comment = `## 🔍 PR Validation Results
+            
+            | Check | Status |
+            |-------|--------|
+            | Code Quality (ESLint + TypeScript) | ${statusEmoji(codeQuality)} ${codeQuality} |
+            | Unit Tests | ${statusEmoji(unitTests)} ${unitTests} |
+            | E2E Tests | ${statusEmoji(e2eTests)} ${e2eTests || 'skipped'} |
+            
+            ${codeQuality === 'success' && unitTests === 'success' ? '✅ **All required checks passed!** This PR is ready for review.' : '❌ **Some checks failed.** Please review the logs and fix the issues.'}`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });

@@ -2,6 +2,7 @@
 
 [![Project Status: Active](https://img.shields.io/badge/status-active-success.svg)](https://github.com/SylwiaNG/HR-Helper)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI/CD: PR Validation](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-2088FF.svg)](https://github.com/SylwiaNG/HR-Helper/actions)
 
 A web application designed to streamline the CV selection process for recruiters. It features automatic analysis of resumes based on keywords and a manual verification interface to reduce manual work and improve the efficiency of filtering candidates.
 
@@ -9,6 +10,7 @@ A web application designed to streamline the CV selection process for recruiters
 - [Tech Stack](#tech-stack)
 - [Getting Started Locally](#getting-started-locally)
 - [Available Scripts](#available-scripts)
+- [CI/CD Pipeline](#cicd-pipeline)
 - [Project Scope](#project-scope)
 - [Project Status](#project-status)
 - [License](#license)
@@ -70,8 +72,41 @@ In the project directory, you can run the following scripts:
 - `npm run start`: Starts a production server.
 - `npm run lint`: Runs the linter to check for code quality issues.
 - `npm run test`: Runs unit tests with Jest.
+- `npm run test:ci`: Runs tests in CI mode with coverage.
 - `npm run test:e2e`: Runs end-to-end tests with Playwright.
 - `npm run test:coverage`: Generates code coverage report.
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment.
+
+### Pull Request Validation
+
+Every Pull Request to `master`/`main` is automatically validated:
+
+✅ **Code Quality** - ESLint + TypeScript compilation check  
+✅ **Unit Tests** - Jest tests with coverage reports  
+✅ **E2E Tests** - Playwright tests (conditional)  
+📊 **Coverage Reports** - Automated comments on PRs
+
+**Documentation:**
+- 📖 [PR Workflow Guide](./docs/pr-workflow-guide.md) - Detailed workflow documentation
+- 🚀 [Quick Start](./docs/pr-workflow-quickstart.md) - How to use the workflow
+- 🧪 [Testing Scenarios](./docs/pr-workflow-testing-scenarios.md) - Test cases for workflow
+
+**Workflow Status:** ✅ Active (`.github/workflows/pr-validation.yml`)
+
+### Local Testing Before PR
+
+Always test locally before creating a Pull Request:
+
+```bash
+# Quick check
+npm run lint && npm run test
+
+# Full CI simulation
+npm ci && npm run lint && npm run test:ci
+```
 
 ## Project Scope
 
