@@ -16,7 +16,7 @@ Workflow aktywuje się automatycznie gdy:
 
 ## Struktura workflow
 
-### Job 1: Code Quality Check ✅
+### Job 1: Lint Code ✅
 
 **Cel:** Sprawdzenie jakości kodu
 
@@ -35,17 +35,15 @@ npm run lint              # ESLint
 npx tsc --noEmit         # TypeScript check
 ```
 
-### Job 2: Unit Tests 🧪
+### Job 2: Unit Tests 🧪 (równolegle z E2E)
 
 **Cel:** Uruchomienie testów jednostkowych
 
-**Wymaga:** Pomyślnego przejścia `code-quality`
+**Wymaga:** Pomyślnego przejścia `lint`
 
 **Kroki:**
-1. Uruchomienie testów w trybie CI
-2. Generowanie raportów pokrycia kodu
-3. Upload artefaktów z raportami
-4. Dodanie komentarza z podsumowaniem pokrycia do PR
+1. Uruchomienie testów w trybie CI z coverage
+2. Upload artefaktów z raportami coverage
 
 **Komendy:**
 ```bash
@@ -54,22 +52,18 @@ npm run test:ci          # Jest z coverage (maxWorkers=2)
 
 **Artefakty:**
 - Raporty pokrycia (coverage/) - dostępne przez 7 dni
-- Automatyczny komentarz na PR z metrykami pokrycia
 
-### Job 3: E2E Tests (Opcjonalny) 🎭
+### Job 3: E2E Tests 🎭 (równolegle z Unit Tests)
 
 **Cel:** Testy end-to-end z Playwright
 
-**Wymaga:** Pomyślnego przejścia `unit-tests`
+**Wymaga:** Pomyślnego przejścia `lint`
 
-**Warunek uruchomienia:**
-- Tylko gdy zmienione pliki w folderach:
-  - `src/`
-  - `tests/e2e/`
+**Environment:** `integration`
 
 **Kroki:**
-1. Instalacja przeglądarki Chromium
-2. Konfiguracja zmiennych środowiskowych testowych
+1. Instalacja przeglądarki Chromium (wg playwright.config.ts)
+2. Konfiguracja zmiennych środowiskowych testowych z secrets
 3. Build aplikacji Next.js
 4. Uruchomienie testów E2E
 
@@ -86,22 +80,23 @@ npm run test:e2e
 - Dostępne przez 7 dni
 
 **⚠️ Uwaga:** Testy E2E wymagają secrets w GitHub:
-- `TEST_SUPABASE_URL`
-- `TEST_SUPABASE_ANON_KEY`
-- `TEST_SUPABASE_SERVICE_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `PLAYWRIGHT_TEST_BASE_URL` (opcjonalny)
 
-### Job 4: Validation Summary 📊
+### Job 4: Status Comment 📊
 
-**Cel:** Podsumowanie wszystkich sprawdzeń
+**Cel:** Komentarz z podsumowaniem na PR
 
-**Wymaga:** `code-quality`, `unit-tests`
+**Wymaga:** `lint`, `unit-test`, `e2e-test` (wszystkie muszą przejść)
 
-**Działa:** Zawsze (nawet gdy poprzednie joby się nie powiodły)
+**Warunek:** Uruchamia się **TYLKO gdy wszystkie poprzednie joby przeszły** (`if: success()`)
 
 **Kroki:**
-1. Sprawdzenie statusów wszystkich jobów
-2. Dodanie komentarza z podsumowaniem do PR
-3. Fail workflow jeśli jakikolwiek wymagany job się nie powiódł
+1. Pobranie artefaktów z coverage
+2. Parsowanie danych o pokryciu
+3. Dodanie komentarza z podsumowaniem wszystkich sprawdzeń i metrykami coverage
 
 ## Wymagania wstępne
 
@@ -169,32 +164,34 @@ npm run test:ci
 ### ✅ Pomyślny PR
 
 ```
-1. Code Quality Check ✅ (2 min)
-   ├── ESLint: 15 warnings, 0 errors
+1. Lint Code ✅ (2 min)
+   ├── ESLint: passed
    └── TypeScript: OK
 
-2. Unit Tests ✅ (3 min)
-   ├── Tests: 61/61 passed
-   └── Coverage: 31.36%
+2a. Unit Tests ✅ (3 min) [RÓWNOLEGLE]
+    ├── Tests: 61/61 passed
+    └── Coverage: 31.36%
 
-3. E2E Tests ⏭️ (skipped - no changes in src/)
+2b. E2E Tests ✅ (6 min) [RÓWNOLEGLE]
+    ├── Environment: integration
+    ├── Chromium installed
+    └── Tests: passed
 
-4. Validation Summary ✅
-   └── Comment: "All required checks passed! ✅"
+3. Status Comment ✅
+   └── Comment: "All checks passed! ✅" + Coverage report
 ```
 
 ### ❌ Nieudany PR
 
 ```
-1. Code Quality Check ✅
+1. Lint Code ✅
 
-2. Unit Tests ❌ (FAILED)
-   └── 3 tests failed
+2a. Unit Tests ❌ (FAILED)
+    └── 3 tests failed
 
-3. E2E Tests ⏭️ (skipped)
+2b. E2E Tests ✅
 
-4. Validation Summary ❌
-   └── Comment: "Some checks failed ❌"
+3. Status Comment ⏭️ (SKIPPED - poprzednie joby nie przeszły)
 ```
 
 ## Optymalizacje
