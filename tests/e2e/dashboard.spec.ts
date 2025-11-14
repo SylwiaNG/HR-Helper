@@ -82,7 +82,7 @@ test.describe('Dashboard and Offers Flow', () => {
 
     // Assert
     expect(stats.total).toBe(stats.accepted + stats.rejected)
-    expect(stats.total).toBe(20) // Based on mock data
+    expect(stats.total).toBe(8) // Based on updated mock data (first offer has 8 CVs)
     expect(stats.accepted).toBeGreaterThanOrEqual(0)
     expect(stats.rejected).toBeGreaterThanOrEqual(0)
   })

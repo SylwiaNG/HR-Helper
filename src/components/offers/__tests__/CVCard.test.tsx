@@ -17,6 +17,7 @@ describe('CVCard', () => {
     created_at: new Date().toISOString(),
   };
 
+  const mockOfferKeywords = ['React', 'TypeScript', 'JavaScript'];
   const mockOnStatusChange = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
@@ -24,27 +25,29 @@ describe('CVCard', () => {
   });
 
   it('should render CV candidate name', () => {
-    render(<CVCard cv={mockCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={mockCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     expect(screen.getByText('Jan Kowalski')).toBeInTheDocument();
   });
 
   it('should display match percentage', () => {
-    render(<CVCard cv={mockCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={mockCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     expect(screen.getByText(/dopasowanie: 85%/i)).toBeInTheDocument();
   });
 
   it('should render all keywords as badges', () => {
-    render(<CVCard cv={mockCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={mockCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
+    // Only keywords that match offerKeywords should be displayed
     expect(screen.getByText('React')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
-    expect(screen.getByText('Node.js')).toBeInTheDocument();
+    // Node.js is not in mockOfferKeywords, so it should not be displayed
+    expect(screen.queryByText('Node.js')).not.toBeInTheDocument();
   });
 
   it('should show accept and reject buttons for new CV', () => {
-    render(<CVCard cv={mockCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={mockCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     expect(screen.getByRole('button', { name: /akceptuj/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /odrzuć/i })).toBeInTheDocument();
@@ -52,7 +55,7 @@ describe('CVCard', () => {
 
   it('should hide accept button for already accepted CV', () => {
     const acceptedCV = { ...mockCV, status: 'accepted' as const };
-    render(<CVCard cv={acceptedCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={acceptedCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     expect(screen.queryByRole('button', { name: /akceptuj/i })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: /odrzuć/i })).toBeInTheDocument();
@@ -60,7 +63,7 @@ describe('CVCard', () => {
 
   it('should hide reject button for already rejected CV', () => {
     const rejectedCV = { ...mockCV, status: 'rejected' as const };
-    render(<CVCard cv={rejectedCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={rejectedCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     expect(screen.getByRole('button', { name: /akceptuj/i })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /odrzuć/i })).not.toBeInTheDocument();
@@ -68,7 +71,7 @@ describe('CVCard', () => {
 
   it('should call onStatusChange when accept button is clicked', async () => {
     const user = userEvent.setup();
-    render(<CVCard cv={mockCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={mockCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     const acceptButton = screen.getByRole('button', { name: /akceptuj/i });
     await user.click(acceptButton);
@@ -79,7 +82,7 @@ describe('CVCard', () => {
 
   it('should call onStatusChange when reject button is clicked', async () => {
     const user = userEvent.setup();
-    render(<CVCard cv={mockCV} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={mockCV} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     const rejectButton = screen.getByRole('button', { name: /odrzuć/i });
     await user.click(rejectButton);
@@ -90,7 +93,7 @@ describe('CVCard', () => {
 
   it('should handle CV with no keywords', () => {
     const cvWithoutKeywords = { ...mockCV, keywords: null };
-    render(<CVCard cv={cvWithoutKeywords} onStatusChange={mockOnStatusChange} />);
+    render(<CVCard cv={cvWithoutKeywords} offerKeywords={mockOfferKeywords} onStatusChange={mockOnStatusChange} />);
 
     // Should still render name and percentage
     expect(screen.getByText('Jan Kowalski')).toBeInTheDocument();

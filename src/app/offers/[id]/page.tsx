@@ -56,21 +56,67 @@ const OfferDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           created_at: new Date().toISOString(),
         };
 
-        const mockCvs: CVDTO[] = [
-          { id: 1, job_offer_id: parseInt(id), first_name: 'Jan', last_name: 'Kowalski', keywords: ['React', 'TypeScript'], match_percentage: 95, matched_keywords_count: 2, status: 'new', created_at: new Date().toISOString() },
-          { id: 2, job_offer_id: parseInt(id), first_name: 'Anna', last_name: 'Nowak', keywords: ['Next.js', 'TailwindCSS'], match_percentage: 88, matched_keywords_count: 2, status: 'new', created_at: new Date().toISOString() },
-          { id: 3, job_offer_id: parseInt(id), first_name: 'Piotr', last_name: 'Zieliński', keywords: ['React'], match_percentage: 75, matched_keywords_count: 1, status: 'new', created_at: new Date().toISOString() },
-          { id: 4, job_offer_id: parseInt(id), first_name: 'Katarzyna', last_name: 'Wiśniewska', keywords: ['TypeScript', 'Next.js'], match_percentage: 92, matched_keywords_count: 2, status: 'accepted', created_at: new Date().toISOString() },
-          { id: 5, job_offer_id: parseInt(id), first_name: 'Marek', last_name: 'Jankowski', keywords: ['JavaScript'], match_percentage: 60, matched_keywords_count: 1, status: 'rejected', created_at: new Date().toISOString() },
-          { id: 6, job_offer_id: parseInt(id), first_name: 'Alicja', last_name: 'Wójcik', keywords: ['React', 'Next.js'], match_percentage: 85, matched_keywords_count: 2, status: 'accepted', created_at: new Date().toISOString() },
-          { id: 7, job_offer_id: parseInt(id), first_name: 'Tomasz', last_name: 'Kowalczyk', keywords: ['CSS'], match_percentage: 40, matched_keywords_count: 1, status: 'rejected', created_at: new Date().toISOString() },
-          { id: 8, job_offer_id: parseInt(id), first_name: 'Magdalena', last_name: 'Kamińska', keywords: ['HTML'], match_percentage: 30, matched_keywords_count: 1, status: 'rejected', created_at: new Date().toISOString() },
+        // Funkcja do obliczania procentu dopasowania
+        // Procent = (dopasowane słowa / wszystkie słowa kluczowe OFERTY) × 100
+        // Przykład: Oferta ma 4 słowa, kandydat ma 1 dopasowanie = 1/4 = 25%
+        const calculateMatchPercentage = (cvKeywords: string[], offerKeywords: string[]): number => {
+          if (!offerKeywords || offerKeywords.length === 0) {
+            return 0;
+          }
+          
+          if (!cvKeywords || cvKeywords.length === 0) {
+            return 0;
+          }
+          
+          const normalizedOfferKeywords = offerKeywords.map(k => k.toLowerCase());
+          const normalizedCvKeywords = cvKeywords.map(k => k.toLowerCase());
+          
+          const matchedCount = normalizedCvKeywords.filter((keyword: string) => 
+            normalizedOfferKeywords.includes(keyword)
+          ).length;
+          
+          // Obliczamy procent na podstawie liczby słów kluczowych OFERTY
+          return Math.round((matchedCount / offerKeywords.length) * 100);
+        };
+
+        // Funkcja do liczenia dopasowanych słów kluczowych
+        const countMatchedKeywords = (cvKeywords: string[], offerKeywords: string[]): number => {
+          if (!cvKeywords || !offerKeywords) return 0;
+          
+          const normalizedOfferKeywords = offerKeywords.map(k => k.toLowerCase());
+          const normalizedCvKeywords = cvKeywords.map(k => k.toLowerCase());
+          
+          return normalizedCvKeywords.filter(keyword => 
+            normalizedOfferKeywords.includes(keyword)
+          ).length;
+        };
+
+        const mockCvsRaw = [
+          { id: 1, first_name: 'Jan', last_name: 'Kowalski', keywords: ['React', 'TypeScript'], status: 'accepted' as const },
+          { id: 2, first_name: 'Anna', last_name: 'Nowak', keywords: ['Next.js', 'MongoDB'], status: 'accepted' as const },
+          { id: 3, first_name: 'Piotr', last_name: 'Zieliński', keywords: ['React', 'Node.js'], status: 'accepted' as const },
+          { id: 4, first_name: 'Katarzyna', last_name: 'Wiśniewska', keywords: ['JavaScript', 'React', 'Node.js'], status: 'accepted' as const },
+          { id: 5, first_name: 'Marek', last_name: 'Jankowski', keywords: ['Python', 'Java'], status: 'rejected' as const },
+          { id: 6, first_name: 'Alicja', last_name: 'Wójcik', keywords: ['React', 'MongoDB'], status: 'accepted' as const },
+          { id: 7, first_name: 'Tomasz', last_name: 'Kowalczyk', keywords: ['CSS', 'HTML'], status: 'rejected' as const },
+          { id: 8, first_name: 'Magdalena', last_name: 'Kamińska', keywords: ['PHP'], status: 'rejected' as const },
         ];
 
+        const mockCvs: CVDTO[] = mockCvsRaw.map(cv => ({
+          ...cv,
+          job_offer_id: parseInt(id),
+          matched_keywords_count: countMatchedKeywords(cv.keywords, mockOfferData.keywords),
+          match_percentage: calculateMatchPercentage(cv.keywords, mockOfferData.keywords),
+          created_at: new Date().toISOString(),
+        }));
+
+        const acceptedCount = mockCvs.filter(cv => cv.status === 'accepted').length;
+        const rejectedCount = mockCvs.filter(cv => cv.status === 'rejected').length;
+
         const mockStats: JobOfferStatsDTO = {
-          total_cvs: mockCvs.length,
-          accepted: mockCvs.filter(cv => cv.status === 'accepted').length,
-          rejected: mockCvs.filter(cv => cv.status === 'rejected').length,
+          total_cvs: mockCvs.length, // wszystkie CV
+          accepted: acceptedCount,
+          rejected: rejectedCount,
         };
 
         setOffer(mockOffer);
@@ -115,7 +161,11 @@ const OfferDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
           if (!prevStats) return null;
           const accepted = updatedCvs.filter(cv => cv.status === 'accepted').length;
           const rejected = updatedCvs.filter(cv => cv.status === 'rejected').length;
-          return { ...prevStats, accepted, rejected };
+          return { 
+            total_cvs: updatedCvs.length, // wszystkie CV
+            accepted, 
+            rejected 
+          };
         });
         return `Status CV został pomyślnie zaktualizowany.`;
       },
@@ -179,7 +229,7 @@ const OfferDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
     return <div className="p-4">Nie znaleziono oferty.</div>;
   }
 
-  const qualifiedCvs = cvs.filter(cv => cv.status === 'new' || cv.status === 'accepted');
+  const qualifiedCvs = cvs.filter(cv => cv.status === 'accepted');
   const rejectedCvs = cvs.filter(cv => cv.status === 'rejected');
 
   return (
@@ -191,8 +241,8 @@ const OfferDetailsPage = ({ params }: { params: Promise<{ id: string }> }) => {
       {offer && <KeywordsPanel offer={offer} onUpdate={handleKeywordsUpdate} />}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8" data-testid="cv-lists-container">
-        <CVList title="Zakwalifikowane" cvs={qualifiedCvs} onStatusChange={handleStatusChange} />
-        <CVList title="Odrzucone" cvs={rejectedCvs} onStatusChange={handleStatusChange} />
+        <CVList title="Zakwalifikowane" cvs={qualifiedCvs} offerKeywords={offer.keywords || []} onStatusChange={handleStatusChange} />
+        <CVList title="Odrzucone" cvs={rejectedCvs} offerKeywords={offer.keywords || []} onStatusChange={handleStatusChange} />
       </div>
     </div>
   );

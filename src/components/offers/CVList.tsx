@@ -1,14 +1,15 @@
 import React from 'react';
-import { CVDTO } from '../../../../src/types';
+import { CVDTO } from '@/types';
 import CVCard from './CVCard';
 
 interface CVListProps {
   title: string;
   cvs: CVDTO[];
+  offerKeywords: string[];
   onStatusChange: (cvId: number, newStatus: 'accepted' | 'rejected') => Promise<void>;
 }
 
-const CVList: React.FC<CVListProps> = ({ title, cvs, onStatusChange }) => {
+const CVList: React.FC<CVListProps> = ({ title, cvs, offerKeywords, onStatusChange }) => {
   const bgColor = title === 'Zakwalifikowane' ? 'bg-green-50' : 'bg-red-50';
 
   return (
@@ -17,7 +18,7 @@ const CVList: React.FC<CVListProps> = ({ title, cvs, onStatusChange }) => {
       <div className="space-y-4">
         {cvs.length > 0 ? (
           cvs.map(cv => (
-            <CVCard key={cv.id} cv={cv} onStatusChange={onStatusChange} />
+            <CVCard key={cv.id} cv={cv} offerKeywords={offerKeywords} onStatusChange={onStatusChange} />
           ))
         ) : (
           <p className="text-gray-500">Brak CV w tej kategorii.</p>

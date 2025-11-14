@@ -29,6 +29,7 @@ describe('CVList', () => {
     },
   ];
 
+  const mockOfferKeywords = ['React', 'TypeScript', 'JavaScript'];
   const mockOnStatusChange = jest.fn().mockResolvedValue(undefined);
 
   beforeEach(() => {
@@ -40,6 +41,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={mockCVs}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -52,6 +54,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={mockCVs}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -65,6 +68,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={mockCVs}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -78,6 +82,7 @@ describe('CVList', () => {
       <CVList
         title="Odrzucone"
         cvs={mockCVs}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -91,6 +96,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={[]}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -103,6 +109,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={[]}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -115,6 +122,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={mockCVs}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );
@@ -129,6 +137,7 @@ describe('CVList', () => {
       <CVList
         title="Zakwalifikowane"
         cvs={[mockCVs[0]]}
+        offerKeywords={mockOfferKeywords}
         onStatusChange={mockOnStatusChange}
       />
     );

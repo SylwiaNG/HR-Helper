@@ -1,38 +1,24 @@
 import { JobOfferCreateCommand, JobOfferUpdateCommand } from '@/types';
 
-// Mock functions for Supabase chainable methods
-const mockSingle = jest.fn();
-const mockSelect = jest.fn(() => ({
-  single: mockSingle,
-}));
-const mockEq = jest.fn(() => ({
-  select: mockSelect,
-  single: mockSingle,
-}));
-const mockInsert = jest.fn(() => ({
-  select: mockSelect,
-}));
-const mockUpdate = jest.fn(() => ({
-  eq: mockEq,
-}));
-const mockDelete = jest.fn(() => ({
-  eq: mockEq,
-}));
-const mockFrom = jest.fn((table: string) => ({
-  select: table === 'job_offers' ? jest.fn(() => ({ 
-    eq: mockEq,
-    // For simple select without eq
-    then: (resolve: any) => mockSelect().then(resolve),
-  })) : mockSelect,
-  insert: mockInsert,
-  update: mockUpdate,
-  delete: mockDelete,
-}));
+// Create mock functions that will be used in tests
+let mockSingle: jest.Mock;
+let mockSelect: jest.Mock;
+let mockEq: jest.Mock;
+let mockInsert: jest.Mock;
+let mockUpdate: jest.Mock;
+let mockDelete: jest.Mock;
+let mockFrom: jest.Mock;
 
 // Mock Supabase client
 jest.mock('@/lib/supabase/client', () => ({
   createClient: jest.fn(() => ({
-    from: mockFrom,
+    from: (...args: any[]) => {
+      // Call the mockFrom function that will be initialized in beforeEach
+      if (!mockFrom) {
+        throw new Error('mockFrom not initialized');
+      }
+      return mockFrom(...args);
+    },
   })),
 }));
 
@@ -41,7 +27,28 @@ import { jobOfferService } from '../jobOfferService';
 
 describe('jobOfferService', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    // Initialize all mocks
+    mockSingle = jest.fn();
+    mockSelect = jest.fn();
+    mockEq = jest.fn();
+    mockInsert = jest.fn();
+    mockUpdate = jest.fn();
+    mockDelete = jest.fn();
+    mockFrom = jest.fn();
+    
+    // Setup default chain
+    mockSingle.mockReturnValue({ data: null, error: null });
+    mockEq.mockReturnValue({ select: mockSelect, single: mockSingle });
+    mockSelect.mockReturnValue({ eq: mockEq, single: mockSingle });
+    mockInsert.mockReturnValue({ select: mockSelect });
+    mockUpdate.mockReturnValue({ eq: mockEq });
+    mockDelete.mockReturnValue({ eq: mockEq });
+    mockFrom.mockReturnValue({
+      select: mockSelect,
+      insert: mockInsert,
+      update: mockUpdate,
+      delete: mockDelete,
+    });
   });
 
   describe('createJobOffer', () => {
@@ -109,11 +116,13 @@ describe('jobOfferService', () => {
       ];
 
       // Mock the select method to return data directly
+      const mockSelectFn = jest.fn().mockResolvedValue({
+        data: mockOffers,
+        error: null,
+      });
+      
       mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockResolvedValue({
-          data: mockOffers,
-          error: null,
-        }),
+        select: mockSelectFn,
       });
 
       const result = await jobOfferService.getJobOffers();
@@ -123,14 +132,16 @@ describe('jobOfferService', () => {
     });
 
     it('should throw error when fetch fails', async () => {
+      const mockSelectFn = jest.fn().mockResolvedValue({
+        data: null,
+        error: { message: 'Database connection failed' },
+      });
+      
       mockFrom.mockReturnValueOnce({
-        select: jest.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'Fetch failed' },
-        }),
+        select: mockSelectFn,
       });
 
-      await expect(jobOfferService.getJobOffers()).rejects.toThrow('Fetch failed');
+      await expect(jobOfferService.getJobOffers()).rejects.toThrow('Database connection failed');
     });
   });
 
@@ -224,8 +235,14 @@ describe('jobOfferService', () => {
 
   describe('deleteJobOffer', () => {
     it('should delete a job offer successfully', async () => {
-      mockEq.mockResolvedValue({
+      const mockEqFn = jest.fn().mockResolvedValue({
         error: null,
+      });
+      
+      mockFrom.mockReturnValueOnce({
+        delete: jest.fn().mockReturnValue({
+          eq: mockEqFn,
+        }),
       });
 
       const result = await jobOfferService.deleteJobOffer(1);
@@ -235,8 +252,14 @@ describe('jobOfferService', () => {
     });
 
     it('should throw error when delete fails', async () => {
-      mockEq.mockResolvedValue({
+      const mockEqFn = jest.fn().mockResolvedValue({
         error: { message: 'Delete failed' },
+      });
+      
+      mockFrom.mockReturnValueOnce({
+        delete: jest.fn().mockReturnValue({
+          eq: mockEqFn,
+        }),
       });
 
       await expect(jobOfferService.deleteJobOffer(1)).rejects.toThrow(
