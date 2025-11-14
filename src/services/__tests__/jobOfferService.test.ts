@@ -12,7 +12,7 @@ let mockFrom: jest.Mock;
 // Mock Supabase client
 jest.mock('@/lib/supabase/client', () => ({
   createClient: jest.fn(() => ({
-    from: (...args: any[]) => {
+    from: (...args: unknown[]) => {
       // Call the mockFrom function that will be initialized in beforeEach
       if (!mockFrom) {
         throw new Error('mockFrom not initialized');
